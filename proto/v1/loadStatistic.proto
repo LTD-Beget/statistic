@@ -1,26 +1,28 @@
 syntax = "proto3";
 
-package beget.statistics.v1.loadStatistics;
+package beget.statistic.v1.loadStatistic;
 import "google/api/annotations.proto";
-import "statistics/proto/v1/structures.proto";
+import "statistic/proto/v1/structures.proto";
 
 // Сервис получения статистики
-service LoadStatisticsService {
+service LoadStatisticService {
   // Получить статистику по серверу
+  //
+  // Получает статистику и информацию по серверу
   rpc getServerInfo (GetServerInfoRequest) returns (GetServerInfoResponse) {
     option (google.api.http) = {
-      get: "/v1/statistics/server-info"
+      get: "/v1/statistic/server-info"
     };
   }
 
-  // Получить статистику нагрузки на mysql базы
+  // Получить статистику нагрузки на MySQL базы
   //
-  // Получает общую статистику нагрузки на mysql базы, либо более подробную статистику разбитую по часам по конкретной mysql базе.
-  // По умолчанию, возвращается общая статистика по дням. Если нужно получить статистику по конкретной mysql базе, то нужно передать идентификатор mysql.
-  // Его можно получить из метода "Получить список mysql баз"
+  // Получает общую статистику нагрузки на MySQL базы, либо более подробную статистику разбитую по часам по конкретной MySQL базе.
+  // По умолчанию, возвращается общая статистика по дням. Если нужно получить статистику по конкретной MySQL базе, то нужно передать идентификатор MySQL.
+  // Его можно получить из метода "Получить список MySQL баз"
   rpc getMysqlLoad(GetMysqlLoadRequest) returns (GetMysqlLoadResponse) {
     option (google.api.http) = {
-      get: "/v1/statistics/mysql/load"
+      get: "/v1/statistic/mysql-load"
     };
   }
 
@@ -31,52 +33,52 @@ service LoadStatisticsService {
   // Его можно получить из метода "Получить список сайтов"
   rpc getSiteLoad(GetSiteLoadRequest) returns (GetSiteLoadResponse) {
     option (google.api.http) = {
-      get: "/v1/statistics/site/load"
+      get: "/v1/statistic/site-load"
     };
   }
 
   // Получить среднюю нагрузку на сервере
   //
   // Получает среднюю нагрузку на сервере за последние сутки
-  rpc getAverageLoad(GetAverageLoadRequest) returns (GetAverageLoadResponse) {
+  rpc getServerAverageLoad(GetServerAverageLoadRequest) returns (GetServerAverageLoadResponse) {
     option (google.api.http) = {
-      get: "/v1/statistics/average-load"
+      get: "/v1/statistic/average-load"
     };
   }
 
   // Получить статистику изменения дисковой квоты
   //
   // Получает статистику изменения дисковой квоты за указанный период
-  rpc getDiskQuotaChangesStat(GetDiskQuotaChangesStatRequest) returns (GetDiskQuotaChangesStatResponse) {
+  rpc getDiskQuota(GetDiskQuotaRequest) returns (GetDiskQuotaResponse) {
     option (google.api.http) = {
-      get: "/v1/statistics/disk-quota"
+      get: "/v1/statistic/disk-quota"
     };
   }
 
   // Получить статистику изменения размера баз данных
   //
   // Получает статистику изменения размера баз данных за указанный период
-  rpc getMysqlSizeChangesStat(GetMysqlSizeChangesStatRequest) returns (GetMysqlSizeChangesStatResponse) {
+  rpc getMysqlSize(GetMysqlSizeRequest) returns (GetMysqlSizeResponse) {
     option (google.api.http) = {
-      get: "/v1/statistics/mysql/quota"
+      get: "/v1/statistic/mysql-quota"
     };
   }
 
   // Получить список сайтов
   //
   // Получает список сайтов и их статистику нагрузки за месяц.
-  rpc getGeneralSiteLoadList(GetSiteLoadListRequest) returns (GetSiteLoadListResponse) {
+  rpc getSiteLoadList(GetSiteLoadListRequest) returns (GetSiteLoadListResponse) {
     option (google.api.http) = {
-      get: "/v1/statistics/site/general"
+      get: "/v1/statistic/site-load-all"
     };
   }
 
-  // Получить список mysql баз
+  // Получить список MySQL баз
   //
-  // Получает список mysql баз и их статистику за месяц
-  rpc getGeneralMysqlLoadList(GetGeneralMysqlLoadListRequest) returns (GetGeneralMysqlLoadListResponse) {
+  // Получает список MySQL баз и их статистику за месяц
+  rpc getMysqlLoadList(GetMysqlLoadListRequest) returns (GetMysqlLoadListResponse) {
     option (google.api.http) = {
-      get: "/v1/statistics/mysql/general"
+      get: "/v1/statistic/mysql-load-all"
     };
   }
 }
@@ -97,7 +99,7 @@ message GetServerInfoResponse {
     string server_cpu_name = 2;
     // Количество оперативной памяти
     int64 server_memory = 3;
-    // Версия mysql
+    // Версия MySQL
     string server_mysql_version = 4;
     // Имя сервера
     string server_name = 5;
@@ -126,7 +128,7 @@ message GetServerInfoResponse {
     // Среднее значение нагрузки для 15 минут
     double la10 = 3;
     // Pid последнего созданного процесса на сервере
-    double last_proc = 4;
+    int64 last_proc = 4;
     // Количество запущенных процессов
     int64 running_proc = 5;
     // Общее количество процессов
@@ -138,9 +140,9 @@ message GetSiteLoadListRequest {}
 
 message GetSiteLoadListResponse {
   // Общая агрегированная статистика нагрузки на сайты
-  repeated GeneralSiteStats general_site_stats = 1;
+  repeated SiteStat site_stat = 1;
 
-  message GeneralSiteStats {
+  message SiteStat {
     // Средняя нагрузка за месяц
     double cp = 1;
     // Название сайта
@@ -150,13 +152,13 @@ message GetSiteLoadListResponse {
   }
 }
 
-message GetGeneralMysqlLoadListRequest {}
+message GetMysqlLoadListRequest {}
 
-message GetGeneralMysqlLoadListResponse {
-  // Общая агрегированная статистика нагрузки на mysql
-  repeated GeneralMysqlStats general_mysql_stats = 1;
+message GetMysqlLoadListResponse {
+  // Общая агрегированная статистика нагрузки на MySQL
+  repeated MysqlStat mysql_stat = 1;
 
-  message GeneralMysqlStats {
+  message MysqlStat {
     // Средняя нагрузка за месяц
     double cp = 1;
     // Название базы
@@ -174,9 +176,9 @@ message GetMysqlLoadRequest {
 
 message GetMysqlLoadResponse {
   // Статистика нагрузки за последний месяц по дням
-  repeated structures.StatisticsSet stats_by_days = 1;
+  repeated structures.StatisticSet stat_by_days = 1;
   // Статистика нагрузки за последний месяц по часам. Поле будет содержать данные, только если запрашиваются данные по конкретной базе
-  repeated structures.StatisticsSet stats_by_hours = 2;
+  repeated structures.StatisticSet stat_by_hours = 2;
 }
 
 message GetSiteLoadRequest {
@@ -189,36 +191,36 @@ message GetSiteLoadRequest {
 
 message GetSiteLoadResponse {
   // Статистика нагрузки за последний месяц по дням
-  repeated structures.StatisticsSet stats_by_days = 1;
+  repeated structures.StatisticSet stat_by_days = 1;
   // Статистика нагрузки за последний месяц по часам. Поле будет содержать данные, только если запрашиваются данные по конкретному сайту
-  repeated structures.StatisticsSet stats_by_hours = 2;
+  repeated structures.StatisticSet stat_by_hours = 2;
 }
 
-message GetAverageLoadRequest {}
+message GetServerAverageLoadRequest {}
 
-message GetAverageLoadResponse {
+message GetServerAverageLoadResponse {
   // Статистика со средней нагрузкой на сервере
-  repeated structures.StatisticsSet data = 1;
+  repeated structures.StatisticSet data = 1;
 }
 
-message GetDiskQuotaChangesStatRequest {
+message GetDiskQuotaRequest {
   // Дата, с которой нужно собрать статистику в формате 2022-11-25
   // Максимум можно запросить месячную статистику. Если переданный start_date больше месяца, то он сокращается до месяца
   string start_date = 1;
 }
 
-message GetDiskQuotaChangesStatResponse {
+message GetDiskQuotaResponse {
   // Статистика изменения дискового пространства
-  repeated structures.StatisticsSet data = 1;
+  repeated structures.StatisticSet data = 1;
 }
 
-message GetMysqlSizeChangesStatRequest {
+message GetMysqlSizeRequest {
   // Дата, с которой нужно собрать статистику в формате 2022-11-25
   // Максимум можно запросить месячную статистику. Если переданный start_date больше месяца, то он сокращается до месяца
   string start_date = 1;
 }
 
-message GetMysqlSizeChangesStatResponse {
+message GetMysqlSizeResponse {
   // Статистика изменения размер баз данных
-  repeated structures.StatisticsSet data = 1;
+  repeated structures.StatisticSet data = 1;
 }

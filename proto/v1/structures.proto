@@ -1,9 +1,9 @@
 syntax = 'proto3';
 
-package beget.statistics.v1.structures;
+package beget.statistic.v1.structures;
 
 // Значение за определенный момент времени
-message StatisticsSet {
+message StatisticSet {
   // Время (RFC3339)
   string datetime = 1;
   // Значение

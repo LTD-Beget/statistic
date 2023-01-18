@@ -1,2 +1,2 @@
-# statistics
-Public Statistics API
+# statistic
+Public Statistic API
