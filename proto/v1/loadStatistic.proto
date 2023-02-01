@@ -1,0 +1,226 @@
+syntax = "proto3";
+
+package beget.statistic.v1.loadStatistic;
+import "google/api/annotations.proto";
+import "statistic/proto/v1/structures.proto";
+
+// Сервис получения статистики
+service LoadStatisticService {
+  // Получить статистику по серверу
+  //
+  // Получает статистику и информацию по серверу
+  rpc getServerInfo (GetServerInfoRequest) returns (GetServerInfoResponse) {
+    option (google.api.http) = {
+      get: "/v1/statistic/server-info"
+    };
+  }
+
+  // Получить статистику нагрузки на MySQL базы
+  //
+  // Получает общую статистику нагрузки на MySQL базы, либо более подробную статистику разбитую по часам по конкретной MySQL базе.
+  // По умолчанию, возвращается общая статистика по дням. Если нужно получить статистику по конкретной MySQL базе, то нужно передать идентификатор MySQL.
+  // Его можно получить из метода "Получить список MySQL баз"
+  rpc getMysqlLoad(GetMysqlLoadRequest) returns (GetMysqlLoadResponse) {
+    option (google.api.http) = {
+      get: "/v1/statistic/mysql-load"
+    };
+  }
+
+  // Получить статистику нагрузки на сайты
+  //
+  // Получает общую статистику нагрузки на сайты, либо более подробную статистику разбитую по часам по конкретному сайту.
+  // По умолчанию, возвращается общая статистика по дням. Если нужно получить статистику по конкретному сайту, то нужно передать идентификатор сайта.
+  // Его можно получить из метода "Получить список сайтов"
+  rpc getSiteLoad(GetSiteLoadRequest) returns (GetSiteLoadResponse) {
+    option (google.api.http) = {
+      get: "/v1/statistic/site-load"
+    };
+  }
+
+  // Получить среднюю нагрузку на сервере
+  //
+  // Получает среднюю нагрузку на сервере за последние сутки
+  rpc getServerAverageLoad(GetServerAverageLoadRequest) returns (GetServerAverageLoadResponse) {
+    option (google.api.http) = {
+      get: "/v1/statistic/average-load"
+    };
+  }
+
+  // Получить статистику изменения дисковой квоты
+  //
+  // Получает статистику изменения дисковой квоты за указанный период
+  rpc getDiskQuota(GetDiskQuotaRequest) returns (GetDiskQuotaResponse) {
+    option (google.api.http) = {
+      get: "/v1/statistic/disk-quota"
+    };
+  }
+
+  // Получить статистику изменения размера баз данных
+  //
+  // Получает статистику изменения размера баз данных за указанный период
+  rpc getMysqlSize(GetMysqlSizeRequest) returns (GetMysqlSizeResponse) {
+    option (google.api.http) = {
+      get: "/v1/statistic/mysql-quota"
+    };
+  }
+
+  // Получить список сайтов
+  //
+  // Получает список сайтов и их статистику нагрузки за месяц.
+  rpc getSiteLoadList(GetSiteLoadListRequest) returns (GetSiteLoadListResponse) {
+    option (google.api.http) = {
+      get: "/v1/statistic/site-load-all"
+    };
+  }
+
+  // Получить список MySQL баз
+  //
+  // Получает список MySQL баз и их статистику за месяц
+  rpc getMysqlLoadList(GetMysqlLoadListRequest) returns (GetMysqlLoadListResponse) {
+    option (google.api.http) = {
+      get: "/v1/statistic/mysql-load-all"
+    };
+  }
+}
+
+message GetServerInfoRequest {}
+
+message GetServerInfoResponse {
+  // Средняя загрузка на сервере
+  LoadAverage load_average = 1;
+  // Аптайм сервера
+  Uptime uptime = 2;
+  // Информация о сервере
+  Server server = 3;
+  message Server {
+    // Версия апача
+    string server_apache_version = 1;
+    // Версия процессора
+    string server_cpu_name = 2;
+    // Количество оперативной памяти
+    int64 server_memory = 3;
+    // Версия MySQL
+    string server_mysql_version = 4;
+    // Имя сервера
+    string server_name = 5;
+    // Версия nginx
+    string server_nginx_version = 6;
+    // Версия perl
+    string server_perl_version = 7;
+    // Версия php
+    string server_php_version = 8;
+    // Версия python
+    string server_python_version = 9;
+  }
+
+  message Uptime {
+    // Количество секунд аптайма
+    int64 total = 1;
+    // Количество секунд в idle статусе
+    int64 idle = 2;
+  }
+
+  message LoadAverage {
+    // Среднее значение нагрузки для 1 минуты
+    double la1 = 1;
+    // Среднее значение нагрузки для 5 минут
+    double la5 = 2;
+    // Среднее значение нагрузки для 15 минут
+    double la10 = 3;
+    // Pid последнего созданного процесса на сервере
+    int64 last_proc = 4;
+    // Количество запущенных процессов
+    int64 running_proc = 5;
+    // Общее количество процессов
+    int64 total_proc = 6;
+  }
+}
+
+message GetSiteLoadListRequest {}
+
+message GetSiteLoadListResponse {
+  // Общая агрегированная статистика нагрузки на сайты
+  repeated SiteStat site_stat = 1;
+
+  message SiteStat {
+    // Средняя нагрузка за месяц
+    double cp = 1;
+    // Название сайта
+    string name = 2;
+    // Id сайта
+    uint64 id = 3;
+  }
+}
+
+message GetMysqlLoadListRequest {}
+
+message GetMysqlLoadListResponse {
+  // Общая агрегированная статистика нагрузки на MySQL
+  repeated MysqlStat mysql_stat = 1;
+
+  message MysqlStat {
+    // Средняя нагрузка за месяц
+    double cp = 1;
+    // Название базы
+    string name = 2;
+  }
+}
+
+message GetMysqlLoadRequest {
+  // Имя базы. "необязательное поле"
+  string db_name = 1;
+  // Дата, с которой нужно собрать статистику в формате 2022-11-25
+  // Максимум можно запросить месячную статистику. Если переданный start_date больше месяца, то он сокращается до месяца
+  string start_date = 2;
+}
+
+message GetMysqlLoadResponse {
+  // Статистика нагрузки за последний месяц по дням
+  repeated structures.StatisticSet stat_by_days = 1;
+  // Статистика нагрузки за последний месяц по часам. Поле будет содержать данные, только если запрашиваются данные по конкретной базе
+  repeated structures.StatisticSet stat_by_hours = 2;
+}
+
+message GetSiteLoadRequest {
+  // Id сайта. "необязательное поле"
+  uint64 id = 1;
+  // Дата, с которой нужно собрать статистику в формате 2022-11-25
+  // Максимум можно запросить месячную статистику. Если переданный start_date больше месяца, то он сокращается до месяца
+  string start_date = 2;
+}
+
+message GetSiteLoadResponse {
+  // Статистика нагрузки за последний месяц по дням
+  repeated structures.StatisticSet stat_by_days = 1;
+  // Статистика нагрузки за последний месяц по часам. Поле будет содержать данные, только если запрашиваются данные по конкретному сайту
+  repeated structures.StatisticSet stat_by_hours = 2;
+}
+
+message GetServerAverageLoadRequest {}
+
+message GetServerAverageLoadResponse {
+  // Статистика со средней нагрузкой на сервере
+  repeated structures.StatisticSet data = 1;
+}
+
+message GetDiskQuotaRequest {
+  // Дата, с которой нужно собрать статистику в формате 2022-11-25
+  // Максимум можно запросить месячную статистику. Если переданный start_date больше месяца, то он сокращается до месяца
+  string start_date = 1;
+}
+
+message GetDiskQuotaResponse {
+  // Статистика изменения дискового пространства
+  repeated structures.StatisticSet data = 1;
+}
+
+message GetMysqlSizeRequest {
+  // Дата, с которой нужно собрать статистику в формате 2022-11-25
+  // Максимум можно запросить месячную статистику. Если переданный start_date больше месяца, то он сокращается до месяца
+  string start_date = 1;
+}
+
+message GetMysqlSizeResponse {
+  // Статистика изменения размер баз данных
+  repeated structures.StatisticSet data = 1;
+}
